@@ -11,6 +11,7 @@ import preview from "./preview";
 
 // IMG
 import jdownloaderIcon from "../../img/jdownloader.svg";
+import shortIcon from "../../img/short.svg";
 
 export default function toolbar(editor) {
   const toolbarButtons = {
@@ -74,6 +75,15 @@ export default function toolbar(editor) {
         "fas fa-align-right"
       ),
     url: () => urlButton(editor),
+    short: () =>
+      bbCodeButton(
+        editor,
+        "Acortado",
+        "[short]",
+        "[/short]",
+        null,
+        shortIcon
+      ),
     image: () => imageButton(editor),
     color: () => colorButton(editor),
     size: () => sizeButton(editor),
