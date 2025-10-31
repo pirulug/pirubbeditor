@@ -46,6 +46,55 @@ export default class PirubbEditor {
     // this.initializeToolbar();
     toolbar(this);
     this.previewArea.style.display = "none";
+
+    // --- NUEVO: historial para undo/redo ---
+    this.history = [];
+    this.redoStack = [];
+    this.saveHistory();
+
+    this.textarea.addEventListener("input", () => {
+      this.saveHistory();
+    });
+
+    this.textarea.addEventListener("keydown", (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === "z") {
+          e.preventDefault();
+          this.undo();
+        } else if (e.key === "y") {
+          e.preventDefault();
+          this.redo();
+        }
+      }
+    });
+  }
+
+  // Guardar el estado en el stack
+  saveHistory() {
+    const value = this.textarea.value;
+    if (
+      this.history.length === 0 ||
+      this.history[this.history.length - 1] !== value
+    ) {
+      this.history.push(value);
+      this.redoStack = []; // limpiar cuando se escribe algo nuevo
+    }
+  }
+
+  undo() {
+    if (this.history.length > 1) {
+      const current = this.history.pop();
+      this.redoStack.push(current);
+      this.textarea.value = this.history[this.history.length - 1];
+    }
+  }
+
+  redo() {
+    if (this.redoStack.length > 0) {
+      const next = this.redoStack.pop();
+      this.history.push(next);
+      this.textarea.value = next;
+    }
   }
 
   disableOtherButtons(activeButton) {
