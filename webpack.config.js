@@ -10,6 +10,12 @@ module.exports = {
     path: path.resolve(__dirname, "dist"),
     publicPath: "/dist/",
     clean: true,
+    library: {
+      name: "PiruBbEditor",
+      type: "umd",
+      export: "default",
+    },
+    globalObject: "this",
   },
   devServer: {
     static: {

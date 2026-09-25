@@ -1,13 +1,13 @@
 // Buttons
 import bbCodeButton from "../buttons/bbCode.js";
+import createHeadingSelect from "../buttons/headingSelect.js";
+import alignButton from "../buttons/align.js";
 import colorButton from "../buttons/color.js";
 import imageButton from "../buttons/image.js";
 import sizeButton from "../buttons/size.js";
 import urlButton from "../buttons/url.js";
 import youTubeButton from "../buttons/youtube.js";
-
-// Components
-import preview from "./preview.js";
+import codeButton from "./codeToggle.js";
 
 // IMG
 import jdownloaderIcon from "../../img/jdownloader.svg";
@@ -15,6 +15,9 @@ import shortIcon from "../../img/short.svg";
 
 export default function toolbar(editor) {
   const toolbarButtons = {
+    heading: () => createHeadingSelect(editor),
+    headings: () => createHeadingSelect(editor),
+    head: () => createHeadingSelect(editor),
     h1: () =>
       bbCodeButton(editor, "H1", "[h1]", "[/h1]", "fa-solid fa-heading fa-2xl"),
     h2: () =>
@@ -34,8 +37,6 @@ export default function toolbar(editor) {
       bbCodeButton(editor, "Subrayado", "[u]", "[/u]", "fas fa-underline"),
     strike: () =>
       bbCodeButton(editor, "Tachado", "[s]", "[/s]", "fas fa-strikethrough"),
-    code: () =>
-      bbCodeButton(editor, "Código", "[code]", "[/code]", "fas fa-code"),
     quote: () =>
       bbCodeButton(editor, "Cita", "[quote]", "[/quote]", "fa fa-quote-left"),
     ol: () =>
@@ -51,27 +52,24 @@ export default function toolbar(editor) {
     li: () =>
       bbCodeButton(editor, "Elemento de Lista", "[li]", "[/li]", "fas fa-list"),
     left: () =>
-      bbCodeButton(
+      alignButton(
         editor,
+        "left",
         "Alinear a la Izquierda",
-        "[left]",
-        "[/left]",
         "fas fa-align-left"
       ),
     center: () =>
-      bbCodeButton(
+      alignButton(
         editor,
+        "center",
         "Centrar",
-        "[center]",
-        "[/center]",
         "fas fa-align-center"
       ),
     right: () =>
-      bbCodeButton(
+      alignButton(
         editor,
+        "right",
         "Alinear a la Derecha",
-        "[right]",
-        "[/right]",
         "fas fa-align-right"
       ),
     url: () => urlButton(editor),
@@ -106,7 +104,8 @@ export default function toolbar(editor) {
       ),
     vip: () => bbCodeButton(editor, "Vip", "[vip]", "[/vip]", "fas fa-star"),
     youtube: () => youTubeButton(editor),
-    preview: () => preview(editor),
+    code: () => codeButton(editor),
+    preview: () => codeButton(editor),
   };
 
   editor.toolbarOptions.forEach((option) => {

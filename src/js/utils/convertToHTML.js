@@ -1,57 +1,162 @@
 export default function convertToHTML(bbcode) {
   if (!bbcode) return "";
 
-  return bbcode
-    .replace(/\[h1\](.*?)\[\/h1\]/g, "<h1>$1</h1>")
-    .replace(/\[h2\](.*?)\[\/h2\]/g, "<h2>$1</h2>")
-    .replace(/\[h3\](.*?)\[\/h3\]/g, "<h3>$1</h3>")
-    .replace(/\[h4\](.*?)\[\/h4\]/g, "<h4>$1</h4>")
-    .replace(/\[h5\](.*?)\[\/h5\]/g, "<h5>$1</h5>")
-    .replace(/\[h6\](.*?)\[\/h6\]/g, "<h6>$1</h6>")
-    .replace(/\[b\](.*?)\[\/b\]/g, "<strong>$1</strong>")
-    .replace(/\[i\](.*?)\[\/i\]/g, "<em>$1</em>")
-    .replace(/\[u\](.*?)\[\/u\]/g, "<u>$1</u>")
-    .replace(/\[s\](.*?)\[\/s\]/g, "<s>$1</s>")
-    .replace(/\[url=(.*?)\](.*?)\[\/url\]/g, "<a href=\"$1\">$2</a>")
-    .replace(/\[url\](.*?)\[\/url\]/g, "<a href=\"$1\">$1</a>")
-    .replace(/\[img\](.*?)\[\/img\]/g, "<img src=\"$1\" alt=\"Image\">")
+  let html = bbcode;
+
+  // Encabezados
+  html = html
+    .replace(/\[h1\](.*?)\[\/h1\]/gis, "<h1>$1</h1>")
+    .replace(/\[h2\](.*?)\[\/h2\]/gis, "<h2>$1</h2>")
+    .replace(/\[h3\](.*?)\[\/h3\]/gis, "<h3>$1</h3>")
+    .replace(/\[h4\](.*?)\[\/h4\]/gis, "<h4>$1</h4>")
+    .replace(/\[h5\](.*?)\[\/h5\]/gis, "<h5>$1</h5>")
+    .replace(/\[h6\](.*?)\[\/h6\]/gis, "<h6>$1</h6>");
+
+  // Formato de texto básico
+  html = html
+    .replace(/\[b\](.*?)\[\/b\]/gis, "<strong>$1</strong>")
+    .replace(/\[i\](.*?)\[\/i\]/gis, "<em>$1</em>")
+    .replace(/\[u\](.*?)\[\/u\]/gis, "<u>$1</u>")
+    .replace(/\[s\](.*?)\[\/s\]/gis, "<s>$1</s>");
+
+  // Enlaces
+  html = html
     .replace(
-      /\[color=(.*?)\](.*?)\[\/color\]/g,
+      /\[url=(.*?)\](.*?)\[\/url\]/gis,
+      "<a href=\"$1\" target=\"_blank\" rel=\"noopener noreferrer\">$2</a>"
+    )
+    .replace(
+      /\[url\](.*?)\[\/url\]/gis,
+      "<a href=\"$1\" target=\"_blank\" rel=\"noopener noreferrer\">$1</a>"
+    );
+
+  // Imágenes con dimensiones o simples
+  html = html
+    .replace(
+      /\[img=(\d+)[xX](\d+)\](.*?)\[\/img\]/gis,
+      (match, w, h, src) =>
+        `<img src="${src.trim()}" style="width:${w}px;height:${h}px;" alt="Image">`
+    )
+    .replace(
+      /\[img\s+([^\]]+)\](.*?)\[\/img\]/gis,
+      (match, attrs, src) => {
+        const widthMatch = attrs.match(/width=([^\s\]]+)/i);
+        const heightMatch = attrs.match(/height=([^\s\]]+)/i);
+        let style = "";
+        if (widthMatch) {
+          const w = widthMatch[1].replace(/["']/g, "").trim();
+          style += `width:${/^\d+$/.test(w) ? w + "px" : w};`;
+        }
+        if (heightMatch) {
+          const h = heightMatch[1].replace(/["']/g, "").trim();
+          style += `height:${/^\d+$/.test(h) ? h + "px" : h};`;
+        }
+        const styleAttr = style ? ` style="${style}"` : "";
+        return `<img src="${src.trim()}"${styleAttr} alt="Image">`;
+      }
+    )
+    .replace(/\[img\](.*?)\[\/img\]/gis, "<img src=\"$1\" alt=\"Image\">");
+
+  // Color y tamaño
+  html = html
+    .replace(
+      /\[color=(.*?)\](.*?)\[\/color\]/gis,
       "<span style=\"color:$1\">$2</span>"
     )
     .replace(
-      /\[size=(.*?)\](.*?)\[\/size\]/g,
-      "<span style=\"font-size:$1\">$2</span>"
+      /\[size=(.*?)\](.*?)\[\/size\]/gis,
+      (match, size, content) => {
+        const cleanSize = size.trim();
+        const fontSize = /^\d+$/.test(cleanSize) ? `${cleanSize}px` : cleanSize;
+        return `<span style=\"font-size:${fontSize}\">${content}</span>`;
+      }
+    );
+
+  // Spoilers, YouTube, JDownloader, VIP
+  html = html
+    .replace(
+      /\[spoiler\](.*?)\[\/spoiler\]/gis,
+      "<div class=\"spoiler\"><button type=\"button\" class=\"spoiler-toggle\" contenteditable=\"false\">Mostrar Spoiler</button><div class=\"spoiler-content\" style=\"display:none;\">$1</div></div>"
     )
     .replace(
-      /\[spoiler\](.*?)\[\/spoiler\]/g,
-      "<div class=\"spoiler\"><button type=\"button\" class=\"spoiler-toggle\">Mostrar Spoiler</button><div class=\"spoiler-content\" style=\"display:none;\">$1</div></div>"
+      /\[youtube=(\d+)[xX](\d+)\](.*?)\[\/youtube\]/gis,
+      (match, w, h, id) =>
+        `<lite-youtube contenteditable="false" videoid="${id.trim()}" style="width:${w}px;height:${h}px;max-width:100%;"></lite-youtube>`
     )
     .replace(
-      /\[youtube\](.*?)\[\/youtube\]/g,
-      "<lite-youtube videoid=\"$1\"></lite-youtube>"
+      /\[youtube\s+([^\]]+)\](.*?)\[\/youtube\]/gis,
+      (match, attrs, id) => {
+        const widthMatch = attrs.match(/width=([^\s\]]+)/i);
+        const heightMatch = attrs.match(/height=([^\s\]]+)/i);
+        let style = "max-width:100%;";
+        if (widthMatch) {
+          const w = widthMatch[1].replace(/["']/g, "").trim();
+          style += `width:${/^\d+$/.test(w) ? w + "px" : w};`;
+        }
+        if (heightMatch) {
+          const h = heightMatch[1].replace(/["']/g, "").trim();
+          style += `height:${/^\d+$/.test(h) ? h + "px" : h};`;
+        }
+        return `<lite-youtube contenteditable="false" videoid="${id.trim()}" style="${style}"></lite-youtube>`;
+      }
     )
     .replace(
-      /\[jdownloader\](.*?)\[\/jdownloader\]/g,
-      "<a href=\"$1\">JDownloader Link</a>"
+      /\[youtube\](.*?)\[\/youtube\]/gis,
+      "<lite-youtube contenteditable=\"false\" videoid=\"$1\"></lite-youtube>"
     )
-    .replace(/\[vip\](.*?)\[\/vip\]/g, "<span class=\"vip\">$1</span>")
-    .replace(/\[code\](.*?)\[\/code\]/g, "<pre><code>$1</code></pre>")
-    .replace(/\[quote\](.*?)\[\/quote\]/g, "<blockquote>$1</blockquote>")
     .replace(
-      /\[left\](.*?)\[\/left\]/g,
+      /\[jdownloader\](.*?)\[\/jdownloader\]/gis,
+      "<a href=\"$1\" class=\"jdownloader-link\" target=\"_blank\" rel=\"noopener noreferrer\">Descargar con JDownloader</a>"
+    )
+    .replace(/\[vip\](.*?)\[\/vip\]/gis, "<span class=\"vip\">$1</span>");
+
+  // Bloques de código y citas
+  html = html
+    .replace(/\[code\](.*?)\[\/code\]/gis, "<pre><code>$1</code></pre>")
+    .replace(/\[quote\](.*?)\[\/quote\]/gis, "<blockquote>$1</blockquote>");
+
+  // Alineaciones
+  html = html
+    .replace(
+      /\[left\](.*?)\[\/left\]/gis,
       "<div style=\"text-align:left\">$1</div>"
     )
     .replace(
-      /\[center\](.*?)\[\/center\]/g,
+      /\[center\](.*?)\[\/center\]/gis,
       "<div style=\"text-align:center\">$1</div>"
     )
     .replace(
-      /\[right\](.*?)\[\/right\]/g,
+      /\[right\](.*?)\[\/right\]/gis,
       "<div style=\"text-align:right\">$1</div>"
-    )
-    .replace(/\n/g, "<br>")
-    .replace(/\[ol\](.*?)\[\/ol\]/g, "<ol>$1</ol>")
-    .replace(/\[ul\](.*?)\[\/ul\]/g, "<ul>$1</ul>")
-    .replace(/\[li\](.*?)\[\/li\]/g, "<li>$1</li>");
+    );
+
+  // Listas limpias sin saltos de línea internos ni etiquetas br
+  html = html
+    .replace(/\[ul\]([\s\S]*?)\[\/ul\]/gis, (match, content) => {
+      const items = content
+        .replace(/\[li\]([\s\S]*?)\[\/li\]/gis, (m, liContent) => `<li>${liContent.trim()}</li>`)
+        .replace(/[\r\n]+/g, "")
+        .trim();
+      return `<ul>${items}</ul>`;
+    })
+    .replace(/\[ol\]([\s\S]*?)\[\/ol\]/gis, (match, content) => {
+      const items = content
+        .replace(/\[li\]([\s\S]*?)\[\/li\]/gis, (m, liContent) => `<li>${liContent.trim()}</li>`)
+        .replace(/[\r\n]+/g, "")
+        .trim();
+      return `<ol>${items}</ol>`;
+    })
+    .replace(/\[li\](.*?)\[\/li\]/gis, "<li>$1</li>");
+
+  // Conversión de saltos de línea restantes a <br>
+  html = html.replace(/\n/g, "<br>");
+
+  // Limpieza de <br> innecesarios alrededor y dentro de listas y elementos de bloque
+  html = html
+    .replace(/<(ul|ol)>\s*<br\s*\/?>/gi, "<$1>")
+    .replace(/<br\s*\/?>\s*<\/(ul|ol)>/gi, "</$1>")
+    .replace(/<\/(li|ul|ol|h[1-6]|blockquote|pre|div)>\s*<br\s*\/?>/gi, "</$1>")
+    .replace(/<br\s*\/?>\s*<(li|ul|ol|h[1-6]|blockquote|pre|div)/gi, "<$1");
+
+  return html;
 }

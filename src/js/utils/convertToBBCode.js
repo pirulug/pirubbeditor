@@ -1,0 +1,204 @@
+import { colorToHex } from "./colorHelper.js";
+
+export default function convertToBBCode(html) {
+  if (!html) return "";
+
+  const container = document.createElement("div");
+  container.innerHTML = html;
+
+  function parseNode(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node.nodeValue;
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+      return "";
+    }
+
+    const tagName = node.tagName.toLowerCase();
+
+    // Ignorar botón del toggle de spoiler si está presente en el DOM
+    if (node.classList.contains("spoiler-toggle")) {
+      return "";
+    }
+
+    // Contenedor principal de spoiler: procesar todos sus nodos internos
+    if (node.classList.contains("spoiler")) {
+      let spoilerInner = "";
+      node.childNodes.forEach((child) => {
+        if (
+          child.nodeType === Node.ELEMENT_NODE &&
+          child.classList.contains("spoiler-toggle")
+        ) {
+          return;
+        }
+        spoilerInner += parseNode(child);
+      });
+      return `\n[spoiler]${spoilerInner.trim()}[/spoiler]\n`;
+    }
+
+    // Bloques de contenido de spoiler (si son hijos directos o generados por saltos de línea)
+    if (node.classList.contains("spoiler-content")) {
+      return `${parseChildren(node)}\n`;
+    }
+
+    // Lite YouTube
+    if (tagName === "lite-youtube") {
+      const videoId = node.getAttribute("videoid") || "";
+      if (!videoId) return "";
+
+      const styleWidth = node.style?.width || node.getAttribute("width") || "";
+      const styleHeight =
+        node.style?.height || node.getAttribute("height") || "";
+      const cleanWidth = styleWidth.replace("px", "").trim();
+      const cleanHeight = styleHeight.replace("px", "").trim();
+
+      if (cleanWidth && cleanHeight) {
+        return `\n[youtube width=${cleanWidth} height=${cleanHeight}]${videoId}[/youtube]\n`;
+      } else if (cleanWidth) {
+        return `\n[youtube width=${cleanWidth}]${videoId}[/youtube]\n`;
+      } else if (cleanHeight) {
+        return `\n[youtube height=${cleanHeight}]${videoId}[/youtube]\n`;
+      }
+      return `\n[youtube]${videoId}[/youtube]\n`;
+    }
+
+    // Insignia VIP
+    if (node.classList.contains("vip")) {
+      return `[vip]${parseChildren(node)}[/vip]`;
+    }
+
+    const inner = parseChildren(node);
+
+    // Color y tamaño en span
+    if (tagName === "span") {
+      let result = inner;
+      if (node.style.color) {
+        const hexColor = colorToHex(node.style.color);
+        result = `[color=${hexColor}]${result}[/color]`;
+      }
+      if (node.style.fontSize) {
+        const size = node.style.fontSize.replace("px", "").trim();
+        result = `[size=${size}]${result}[/size]`;
+      }
+      return result;
+    }
+
+    let result = "";
+
+    switch (tagName) {
+      case "h1":
+      case "h2":
+      case "h3":
+      case "h4":
+      case "h5":
+      case "h6":
+        result = `\n[${tagName}]${inner.trim()}[/${tagName}]\n`;
+        break;
+      case "strong":
+      case "b":
+        return `[b]${inner}[/b]`;
+      case "em":
+      case "i":
+        return `[i]${inner}[/i]`;
+      case "u":
+        return `[u]${inner}[/u]`;
+      case "s":
+      case "strike":
+      case "del":
+        return `[s]${inner}[/s]`;
+      case "a": {
+        const href = node.getAttribute("href") || "";
+        if (node.classList.contains("jdownloader-link")) {
+          return `[jdownloader]${href}[/jdownloader]`;
+        }
+        if (inner.trim() === href.trim()) {
+          return `[url]${href}[/url]`;
+        }
+        return `[url=${href}]${inner}[/url]`;
+      }
+      case "img": {
+        const src = node.getAttribute("src") || "";
+        if (!src) return "";
+
+        const styleWidth =
+          node.style?.width || node.getAttribute("width") || "";
+        const styleHeight =
+          node.style?.height || node.getAttribute("height") || "";
+        const cleanWidth = styleWidth.replace("px", "").trim();
+        const cleanHeight = styleHeight.replace("px", "").trim();
+
+        if (cleanWidth && cleanHeight) {
+          return `[img width=${cleanWidth} height=${cleanHeight}]${src}[/img]`;
+        } else if (cleanWidth) {
+          return `[img width=${cleanWidth}]${src}[/img]`;
+        } else if (cleanHeight) {
+          return `[img height=${cleanHeight}]${src}[/img]`;
+        }
+        return `[img]${src}[/img]`;
+      }
+      case "blockquote":
+        result = `\n[quote]${inner.trim()}[/quote]\n`;
+        break;
+      case "pre": {
+        const codeNode = node.querySelector("code");
+        const codeText = codeNode ? codeNode.textContent : inner;
+        return `\n[code]${codeText.trim()}[/code]\n`;
+      }
+      case "code":
+        return `[code]${inner}[/code]`;
+      case "ol":
+        return `\n[ol]\n${inner.trim()}\n[/ol]\n`;
+      case "ul":
+        return `\n[ul]\n${inner.trim()}\n[/ul]\n`;
+      case "li":
+        return `[li]${inner.trim()}[/li]\n`;
+      case "p":
+      case "div":
+        result = inner ? `\n${inner.trim()}\n` : "\n";
+        break;
+      case "br":
+        return "\n";
+      default:
+        result = inner;
+        break;
+    }
+
+    // Color en elementos distintos de span si tienen estilo directo
+    if (tagName !== "span" && node.style && node.style.color) {
+      const hexColor = colorToHex(node.style.color);
+      result = `[color=${hexColor}]${result}[/color]`;
+    }
+
+    // Alineaciones de texto
+    const textAlign = node.style ? node.style.textAlign : "";
+    if (textAlign === "center") {
+      return `\n[center]${result.trim()}[/center]\n`;
+    }
+    if (textAlign === "right") {
+      return `\n[right]${result.trim()}[/right]\n`;
+    }
+    if (
+      textAlign === "left" &&
+      (tagName === "div" || tagName === "p" || tagName.startsWith("h"))
+    ) {
+      return `\n[left]${result.trim()}[/left]\n`;
+    }
+
+    return result;
+  }
+
+  function parseChildren(parentNode) {
+    let result = "";
+    parentNode.childNodes.forEach((child) => {
+      result += parseNode(child);
+    });
+    return result;
+  }
+
+  return parseChildren(container)
+    .replace(/\u200B/g, "")
+    .replace(/\[(b|i|u|s)\]\s*\[\/\1\]/gi, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}

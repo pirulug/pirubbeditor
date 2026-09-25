@@ -19,53 +19,108 @@
     <link rel="stylesheet" href="../dist/css/pirubbeditor.css" />
   </head>
   <body>
-    <div class="container mt-3">
-      <div
-        class="pirubbeditor mb-3"
-        data-toolbar='["h1","h2","h3","h4","h5","h6","bold", "italic", "underline", "strike", "ol", "ul", "li", "left", "center", "right", "url", "image", "color", "size", "spoiler", "jdownloader", "vip", "youtube", "preview"]'
-        data-preview-type="js">
-        <div class="pirubbeditor__toolbar"></div>
-        <div class="pirubbeditor__container">
-          <textarea class="pirubbeditor__input">
-[b]Hola mundo[/b]
-
-[spoiler]Hola mundo[/spoiler]
-</textarea
-          >
-          <div class="pirubbeditor__preview"></div>
-        </div>
-      </div>
-      
-      <div
-        class="pirubbeditor mb-3"
-        data-toolbar='["bold", "italic", "underline", "strike", "ol", "ul", "li", "short", "preview"]'
-        data-preview-type="js">
-        <div class="pirubbeditor__toolbar"></div>
-        <div class="pirubbeditor__container">
-          <textarea class="pirubbeditor__input">
-[b]Hola mundo[/b]
-
-[spoiler]Hola mundo[/spoiler]
-</textarea
-          >
-          <div class="pirubbeditor__preview"></div>
-        </div>
+    <div class="container my-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 m-0">PiruBbEditor - Demo</h1>
+        <button
+          type="button"
+          class="btn btn-outline-secondary btn-sm"
+          id="toggle-theme-btn">
+          Alternar Tema
+        </button>
       </div>
 
-      <div
-        class="pirubbeditor"
-        data-toolbar='["bold", "underline", "code", "strike", "preview", "short"]'
-        data-preview-type="php"
-        data-preview-url="preview.php">
-        <div class="pirubbeditor__toolbar"></div>
-        <div class="pirubbeditor__container">
-          <textarea class="pirubbeditor__input">[b]Hola mundo[/b]</textarea>
-          <div class="pirubbeditor__preview"></div>
+      <div class="card mb-4">
+        <div class="card-header fw-bold">Editor Completo (Inicializado desde un solo &lt;div id="editor-full"&gt;)</div>
+        <div class="card-body">
+          <div id="editor-full">[h1]Título Principal[/h1]
+Este es un ejemplo de texto enriquecido con [b]negrita[/b], [i]cursiva[/i], [u]subrayado[/u] y [s]tachado[/s].
+
+[color=#0d6efd]Texto en color azul[/color] y [size=18]texto en tamaño grande (18px)[/size].
+
+[quote]Esta es una cita en bloque para destacar contenido importante.[/quote]
+
+[h3]Listas y Enlaces[/h3]
+[ul]
+[li]Primer elemento de la lista[/li]
+[li]Segundo elemento de la lista[/li]
+[/ul]
+
+Visita nuestro sitio: [url=https://github.com/pirulug]Perfil de GitHub[/url] y miembro [vip]VIP GOLD[/vip]
+
+[spoiler]Contenido secreto protegido dentro del spoiler.[/spoiler]
+
+[center][b]Texto Centrado[/b][/center]</div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header fw-bold">Editor Básico (Inicializado desde un solo &lt;textarea id="editor-basic"&gt;)</div>
+        <div class="card-body">
+          <textarea id="editor-basic">[b]Editor Simplificado[/b]
+[ul]
+[li]Elemento A[/li]
+[li]Elemento B[/li]
+[/ul]
+[spoiler]Detalles adicionales ocultos[/spoiler]</textarea>
         </div>
       </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script type="module" src="../dist/js/pirubbeditor.js"></script>
+    <script src="../dist/js/pirubbeditor.js"></script>
+    <script>
+      // Inicialización mediante IDs y opciones en JS con el paquete compilado
+      new PiruBbEditor("#editor-full", {
+        toolbar: [
+          "heading",
+          "bold",
+          "italic",
+          "underline",
+          "strike",
+          "quote",
+          "ol",
+          "ul",
+          "li",
+          "left",
+          "center",
+          "right",
+          "url",
+          "image",
+          "color",
+          "size",
+          "spoiler",
+          "jdownloader",
+          "vip",
+          "youtube",
+          "code",
+        ],
+        previewType: "js",
+      });
+
+      new PiruBbEditor("#editor-basic", {
+        toolbar: [
+          "bold",
+          "italic",
+          "underline",
+          "strike",
+          "ol",
+          "ul",
+          "li",
+          "short",
+          "code",
+        ],
+        previewType: "js",
+      });
+
+      const toggleBtn = document.getElementById("toggle-theme-btn");
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", () => {
+          const currentTheme = document.documentElement.getAttribute("data-bs-theme");
+          const nextTheme = currentTheme === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-bs-theme", nextTheme);
+        });
+      }
+    </script>
   </body>
 </html>
