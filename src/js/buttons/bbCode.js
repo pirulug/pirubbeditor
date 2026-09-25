@@ -22,7 +22,8 @@ function getHtmlWrapperForBBCode(tagStart, tagEnd) {
     "[right]": "<div style=\"text-align:right\"></div>",
     "[spoiler]":
       "<div class=\"spoiler\"><button type=\"button\" class=\"spoiler-toggle\" contenteditable=\"false\">Ocultar Spoiler</button><div class=\"spoiler-content\" style=\"display:block;\"></div></div>",
-    "[vip]": "<span class=\"vip\"></span>",
+    "[vip]":
+      "<div class=\"vip-box\"><div class=\"vip-header\" contenteditable=\"false\"><i class=\"fas fa-star\"></i> Contenido VIP</div><div class=\"vip-content\"></div></div>",
     "[short]": "<a href=\"#\"></a>",
   };
 

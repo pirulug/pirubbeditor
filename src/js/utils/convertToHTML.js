@@ -108,7 +108,10 @@ export default function convertToHTML(bbcode) {
       /\[jdownloader\](.*?)\[\/jdownloader\]/gis,
       "<a href=\"$1\" class=\"jdownloader-link\" target=\"_blank\" rel=\"noopener noreferrer\">Descargar con JDownloader</a>"
     )
-    .replace(/\[vip\](.*?)\[\/vip\]/gis, "<span class=\"vip\">$1</span>");
+    .replace(
+      /\[vip\]([\s\S]*?)\[\/vip\]/gis,
+      "<div class=\"vip-box\"><div class=\"vip-header\" contenteditable=\"false\"><i class=\"fas fa-star\"></i> Contenido VIP</div><div class=\"vip-content\">$1</div></div>"
+    );
 
   // Bloques de código y citas
   html = html

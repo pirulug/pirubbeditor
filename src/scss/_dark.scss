@@ -102,6 +102,20 @@
     background-color: rgba(255, 255, 255, 0.03);
   }
 
+  .vip-box {
+    border-color: #e0a800;
+    background-color: rgba(255, 193, 7, 0.08);
+
+    .vip-header {
+      background: linear-gradient(90deg, #d4a000, #c66900);
+      color: #fff;
+    }
+
+    .vip-content {
+      color: #f8f9fa;
+    }
+  }
+
   .pirubbeditor-modal {
     background: #212529;
     border-color: #495057;

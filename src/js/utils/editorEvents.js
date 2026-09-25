@@ -237,6 +237,66 @@ function handleSpoilerEnter(editor, spoilerContent, range, sel, e) {
   editor.syncToTextarea();
 }
 
+function handleVipEnter(editor, vipContent, range, sel, e) {
+  e.preventDefault();
+
+  const vipContainer = vipContent.closest(".vip-box") || vipContent;
+
+  const textAfterCaret = getRemainingTextInContainer(
+    range.endContainer,
+    range.endOffset,
+    vipContent
+  );
+
+  const isAtEmptyLineAtEnd =
+    !vipContent.textContent.trim() ||
+    (isCaretAfterBr(range.startContainer, range.startOffset) &&
+      !textAfterCaret.trim());
+
+  if (isAtEmptyLineAtEnd) {
+    // Salir del bloque VIP: limpiar <br> finales e insertar <p><br></p> después de .vip-box
+    cleanTrailingBrs(vipContent);
+
+    const p = document.createElement("p");
+    p.innerHTML = "<br>";
+    if (vipContainer.nextSibling) {
+      vipContainer.parentNode.insertBefore(p, vipContainer.nextSibling);
+    } else {
+      vipContainer.parentNode.appendChild(p);
+    }
+
+    const newRange = document.createRange();
+    newRange.setStart(p, 0);
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+
+    editor.saveSelection();
+    editor.syncToTextarea();
+    return;
+  }
+
+  // Insertar un salto de línea dentro del contenido VIP sin duplicar el contenedor
+  range.deleteContents();
+  const br = document.createElement("br");
+  range.insertNode(br);
+
+  const next = br.nextSibling;
+  if (!next || (next.nodeType === Node.TEXT_NODE && !next.textContent)) {
+    const trailingBr = document.createElement("br");
+    vipContent.appendChild(trailingBr);
+  }
+
+  const newRange = document.createRange();
+  newRange.setStartAfter(br);
+  newRange.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(newRange);
+
+  editor.saveSelection();
+  editor.syncToTextarea();
+}
+
 export function handlePreviewKeyDown(editor, e) {
   if (e.ctrlKey || e.metaKey) {
     if (e.key === "z") {
@@ -271,6 +331,16 @@ export function handlePreviewKeyDown(editor, e) {
         ? spoilerEl
         : spoilerEl.querySelector(".spoiler-content") || spoilerEl;
       handleSpoilerEnter(editor, targetContent, range, sel, e);
+      return;
+    }
+
+    // Manejo de VIP (.vip-content o .vip-box)
+    const vipEl = elementNode.closest(".vip-content, .vip-box");
+    if (vipEl && editor.previewArea.contains(vipEl)) {
+      const targetContent = vipEl.classList.contains("vip-content")
+        ? vipEl
+        : vipEl.querySelector(".vip-content") || vipEl;
+      handleVipEnter(editor, targetContent, range, sel, e);
       return;
     }
 

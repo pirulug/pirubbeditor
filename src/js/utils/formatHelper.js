@@ -158,6 +158,7 @@ export function applyFormat(editor, tagStart, tagEnd, htmlWrapper) {
 
     const isBlockElement =
       targetNode.classList.contains("spoiler") ||
+      targetNode.classList.contains("vip-box") ||
       /^(div|blockquote|pre|lite-youtube|table|h[1-6]|ul|ol)$/i.test(
         targetNode.tagName
       );
@@ -172,6 +173,12 @@ export function applyFormat(editor, tagStart, tagEnd, htmlWrapper) {
           const toggleBtn = targetNode.querySelector(".spoiler-toggle");
           if (toggleBtn) toggleBtn.textContent = "Ocultar Spoiler";
         }
+      } else if (targetNode.classList.contains("vip-box")) {
+        const contentArea = targetNode.querySelector(".vip-content");
+        if (contentArea) {
+          contentArea.innerHTML = "";
+          contentArea.appendChild(selectedContent);
+        }
       } else {
         targetNode.appendChild(selectedContent);
       }
@@ -185,7 +192,11 @@ export function applyFormat(editor, tagStart, tagEnd, htmlWrapper) {
     let nextCaretTarget = targetNode;
     if (isBlockElement) {
       let nextSibling = targetNode.nextSibling;
-      if (!nextSibling || (nextSibling.nodeType === Node.TEXT_NODE && !nextSibling.textContent.trim())) {
+      if (
+        !nextSibling ||
+        (nextSibling.nodeType === Node.TEXT_NODE &&
+          !nextSibling.textContent.trim())
+      ) {
         const nextParagraph = document.createElement("p");
         nextParagraph.innerHTML = "<br>";
         if (nextSibling) {
@@ -200,6 +211,18 @@ export function applyFormat(editor, tagStart, tagEnd, htmlWrapper) {
     const newRange = document.createRange();
     if (targetNode.classList.contains("spoiler")) {
       const contentArea = targetNode.querySelector(".spoiler-content");
+      if (contentArea) {
+        if (!contentArea.innerHTML.trim()) {
+          contentArea.innerHTML = "<br>";
+        }
+        newRange.setStart(contentArea, 0);
+        newRange.collapse(true);
+      } else {
+        newRange.setStartAfter(targetNode);
+        newRange.collapse(true);
+      }
+    } else if (targetNode.classList.contains("vip-box")) {
+      const contentArea = targetNode.querySelector(".vip-content");
       if (contentArea) {
         if (!contentArea.innerHTML.trim()) {
           contentArea.innerHTML = "<br>";

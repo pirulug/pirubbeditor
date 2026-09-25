@@ -17,8 +17,11 @@ export default function convertToBBCode(html) {
 
     const tagName = node.tagName.toLowerCase();
 
-    // Ignorar botón del toggle de spoiler si está presente en el DOM
-    if (node.classList.contains("spoiler-toggle")) {
+    // Ignorar encabezados no editables (toggle de spoiler y header VIP)
+    if (
+      node.classList.contains("spoiler-toggle") ||
+      node.classList.contains("vip-header")
+    ) {
       return "";
     }
 
@@ -37,8 +40,26 @@ export default function convertToBBCode(html) {
       return `\n[spoiler]${spoilerInner.trim()}[/spoiler]\n`;
     }
 
-    // Bloques de contenido de spoiler (si son hijos directos o generados por saltos de línea)
-    if (node.classList.contains("spoiler-content")) {
+    // Contenedor principal de VIP: procesar todos sus nodos internos
+    if (node.classList.contains("vip-box")) {
+      let vipInner = "";
+      node.childNodes.forEach((child) => {
+        if (
+          child.nodeType === Node.ELEMENT_NODE &&
+          child.classList.contains("vip-header")
+        ) {
+          return;
+        }
+        vipInner += parseNode(child);
+      });
+      return `\n[vip]${vipInner.trim()}[/vip]\n`;
+    }
+
+    // Bloques de contenido interno (spoiler o vip)
+    if (
+      node.classList.contains("spoiler-content") ||
+      node.classList.contains("vip-content")
+    ) {
       return `${parseChildren(node)}\n`;
     }
 

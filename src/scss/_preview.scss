@@ -113,6 +113,36 @@
     }
   }
 
+  .vip-box {
+    margin: 0.75rem 0;
+    border: 1px solid #ffc107;
+    border-radius: 0.375rem;
+    background-color: rgba(255, 193, 7, 0.05);
+    overflow: hidden;
+
+    .vip-header {
+      background: linear-gradient(90deg, #ffc107, #ff9800);
+      color: #000;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      user-select: none;
+
+      i {
+        font-size: 0.9rem;
+      }
+    }
+
+    .vip-content {
+      padding: 0.75rem;
+      color: inherit;
+      min-height: 1.5rem;
+    }
+  }
+
   .vip {
     display: inline-block;
     background: linear-gradient(45deg, #ffd700, #ffae00);
