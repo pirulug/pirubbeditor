@@ -42,6 +42,7 @@ export default function convertToHTML(bbcode) {
       (match, attrs, src) => {
         const widthMatch = attrs.match(/width=([^\s\]]+)/i);
         const heightMatch = attrs.match(/height=([^\s\]]+)/i);
+        const alignMatch = attrs.match(/align=([^\s\]]+)/i);
         let style = "";
         if (widthMatch) {
           const w = widthMatch[1].replace(/["']/g, "").trim();
@@ -50,6 +51,12 @@ export default function convertToHTML(bbcode) {
         if (heightMatch) {
           const h = heightMatch[1].replace(/["']/g, "").trim();
           style += `height:${/^\d+$/.test(h) ? h + "px" : h};`;
+        }
+        if (alignMatch) {
+          const a = alignMatch[1].replace(/["']/g, "").trim().toLowerCase();
+          if (a === "left") style += "float:left;margin:0 1rem 0.5rem 0;display:inline-block;";
+          else if (a === "right") style += "float:right;margin:0 0 0.5rem 1rem;display:inline-block;";
+          else if (a === "center") style += "display:block;margin:0.5rem auto;";
         }
         const styleAttr = style ? ` style="${style}"` : "";
         return `<img src="${src.trim()}"${styleAttr} alt="Image">`;

@@ -1,5 +1,41 @@
 import { colorToHex } from "./colorHelper.js";
 
+function getMediaTagAttrs(node) {
+  const attrs = [];
+  const styleWidth = node.style?.width || node.getAttribute("width") || "";
+  const styleHeight = node.style?.height || node.getAttribute("height") || "";
+  const cleanWidth = styleWidth.replace("px", "").trim();
+  const cleanHeight = styleHeight.replace("px", "").trim();
+
+  if (cleanWidth && cleanWidth !== "auto") {
+    attrs.push(`width=${cleanWidth}`);
+  }
+  if (cleanHeight && cleanHeight !== "auto") {
+    attrs.push(`height=${cleanHeight}`);
+  }
+
+  const floatVal = node.style?.float || "";
+  const displayVal = node.style?.display || "";
+  const marginVal = node.style?.margin || "";
+  const marginLeft = node.style?.marginLeft || "";
+  const marginRight = node.style?.marginRight || "";
+
+  if (floatVal === "left") {
+    attrs.push("align=left");
+  } else if (floatVal === "right") {
+    attrs.push("align=right");
+  } else if (
+    (displayVal === "block" &&
+      (marginVal.includes("auto") ||
+        (marginLeft === "auto" && marginRight === "auto"))) ||
+    node.getAttribute("align") === "center"
+  ) {
+    attrs.push("align=center");
+  }
+
+  return attrs.length ? ` ${attrs.join(" ")}` : "";
+}
+
 export default function convertToBBCode(html) {
   if (!html) return "";
 
@@ -67,21 +103,8 @@ export default function convertToBBCode(html) {
     if (tagName === "lite-youtube") {
       const videoId = node.getAttribute("videoid") || "";
       if (!videoId) return "";
-
-      const styleWidth = node.style?.width || node.getAttribute("width") || "";
-      const styleHeight =
-        node.style?.height || node.getAttribute("height") || "";
-      const cleanWidth = styleWidth.replace("px", "").trim();
-      const cleanHeight = styleHeight.replace("px", "").trim();
-
-      if (cleanWidth && cleanHeight) {
-        return `\n[youtube width=${cleanWidth} height=${cleanHeight}]${videoId}[/youtube]\n`;
-      } else if (cleanWidth) {
-        return `\n[youtube width=${cleanWidth}]${videoId}[/youtube]\n`;
-      } else if (cleanHeight) {
-        return `\n[youtube height=${cleanHeight}]${videoId}[/youtube]\n`;
-      }
-      return `\n[youtube]${videoId}[/youtube]\n`;
+      const attrStr = getMediaTagAttrs(node);
+      return `\n[youtube${attrStr}]${videoId}[/youtube]\n`;
     }
 
     // Insignia VIP
@@ -149,22 +172,8 @@ export default function convertToBBCode(html) {
       case "img": {
         const src = node.getAttribute("src") || "";
         if (!src) return "";
-
-        const styleWidth =
-          node.style?.width || node.getAttribute("width") || "";
-        const styleHeight =
-          node.style?.height || node.getAttribute("height") || "";
-        const cleanWidth = styleWidth.replace("px", "").trim();
-        const cleanHeight = styleHeight.replace("px", "").trim();
-
-        if (cleanWidth && cleanHeight) {
-          return `[img width=${cleanWidth} height=${cleanHeight}]${src}[/img]`;
-        } else if (cleanWidth) {
-          return `[img width=${cleanWidth}]${src}[/img]`;
-        } else if (cleanHeight) {
-          return `[img height=${cleanHeight}]${src}[/img]`;
-        }
-        return `[img]${src}[/img]`;
+        const attrStr = getMediaTagAttrs(node);
+        return `[img${attrStr}]${src}[/img]`;
       }
       case "blockquote":
         result = `\n[quote]${inner.trim()}[/quote]\n`;

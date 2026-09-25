@@ -6,6 +6,7 @@ import {
   handlePreviewKeyDown,
   handlePreviewClick,
 } from "./utils/editorEvents.js";
+import initMediaResizer from "./utils/mediaResizer.js";
 
 export default class PiruBbEditor {
   constructor(target, options = {}) {
@@ -171,6 +172,9 @@ export default class PiruBbEditor {
     this.previewArea.addEventListener("click", (e) => {
       handlePreviewClick(this, e);
     });
+
+    // Inicializar redimensionador y opciones flotantes para imágenes y videos
+    this.mediaResizer = initMediaResizer(this);
   }
 
   saveSelection() {
@@ -314,6 +318,9 @@ export default class PiruBbEditor {
 
   toggleCodeView(button = null) {
     this.isCodeMode = !this.isCodeMode;
+    if (this.mediaResizer) {
+      this.mediaResizer.hide();
+    }
 
     if (this.isCodeMode) {
       this.syncToTextarea();

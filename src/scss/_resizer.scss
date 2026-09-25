@@ -1,0 +1,204 @@
+// Floating media resizer and toolbar styles
+.pirubbeditor-resizer {
+  position: absolute;
+  border: 1px dashed #0d6efd;
+  pointer-events: none;
+  box-sizing: border-box;
+  z-index: 50;
+
+  // Esquinas decorativas estilo bracket ⌜ ⌝ ⌞ ⌟
+  &__corner {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: #000;
+    border-style: solid;
+    pointer-events: none;
+    box-sizing: border-box;
+
+    &--nw {
+      top: -2px;
+      left: -2px;
+      border-width: 2px 0 0 2px;
+    }
+
+    &--ne {
+      top: -2px;
+      right: -2px;
+      border-width: 2px 2px 0 0;
+    }
+
+    &--sw {
+      bottom: -2px;
+      left: -2px;
+      border-width: 0 0 2px 2px;
+    }
+
+    &--se {
+      bottom: -2px;
+      right: -2px;
+      border-width: 0 2px 2px 0;
+    }
+  }
+
+  // Puntos interactivos de arrastre para redimensionar
+  &__handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #000;
+    border: 1px solid #fff;
+    box-sizing: border-box;
+    pointer-events: auto;
+    z-index: 60;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+    &--nw {
+      top: -5px;
+      left: -5px;
+      cursor: nwse-resize;
+    }
+
+    &--ne {
+      top: -5px;
+      right: -5px;
+      cursor: nesw-resize;
+    }
+
+    &--sw {
+      bottom: -5px;
+      left: -5px;
+      cursor: nesw-resize;
+    }
+
+    &--se {
+      bottom: -5px;
+      right: -5px;
+      cursor: nwse-resize;
+    }
+  }
+
+  // Placa informativa de dimensiones
+  &__info {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    background: rgba(33, 37, 41, 0.88);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    line-height: 1.3;
+    pointer-events: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    z-index: 55;
+    white-space: nowrap;
+
+    &-current {
+      font-weight: 600;
+    }
+
+    &-orig {
+      font-size: 0.72rem;
+      color: #adb5bd;
+    }
+  }
+
+  // Barra de herramientas flotante
+  &__toolbar {
+    position: absolute;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    padding: 3px;
+    pointer-events: auto;
+    z-index: 70;
+    user-select: none;
+    white-space: nowrap;
+
+    &--top {
+      .pirubbeditor-resizer__arrow {
+        bottom: -6px;
+        border-width: 6px 6px 0 6px;
+        border-color: #fff transparent transparent transparent;
+      }
+    }
+
+    &--bottom {
+      .pirubbeditor-resizer__arrow {
+        top: -6px;
+        border-width: 0 6px 6px 6px;
+        border-color: transparent transparent #fff transparent;
+      }
+    }
+  }
+
+  // Flecha apuntadora de la barra flotante
+  &__arrow {
+    position: absolute;
+    right: 24px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    pointer-events: none;
+  }
+
+  // Grupos de botones
+  &__btn-group {
+    display: inline-flex;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  // Botones de acción
+  &__btn {
+    background: #fff;
+    border: none;
+    border-right: 1px solid #e0e0e0;
+    padding: 5px 9px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background 0.15s, color 0.15s;
+
+    &:last-child {
+      border-right: none;
+    }
+
+    &:hover {
+      background: #f1f3f5;
+      color: #000;
+    }
+
+    &:active {
+      background: #e2e6ea;
+    }
+
+    i {
+      font-size: 0.85rem;
+    }
+
+    &--delete {
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      color: #dc3545;
+
+      &:hover {
+        background: #dc3545;
+        color: #fff;
+      }
+    }
+  }
+}
