@@ -1,10 +1,10 @@
-import updatePreview from "../utils/updatePreview";
+import updatePreview from "../utils/updatePreview.js";
 
 export default function createPreviewButton(editor) {
   const button = document.createElement("button");
-  button.innerHTML = '<i class="fas fa-eye"></i>';
-  button.title = "Toggle Preview";
   button.type = "button";
+  button.title = "Toggle Preview";
+  button.innerHTML = "<i class=\"fas fa-eye\"></i>";
 
   let previewVisible = false;
   button.addEventListener("click", () => {
@@ -20,5 +20,6 @@ export default function createPreviewButton(editor) {
       editor.enableOtherButtons();
     }
   });
+
   return button;
 }

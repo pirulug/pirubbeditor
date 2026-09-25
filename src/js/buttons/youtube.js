@@ -1,19 +1,18 @@
-import wrapText from "../utils/wrapText";
+import wrapText from "../utils/wrapText.js";
 
-export default function createYouTubeButton(editor) {
-  const button = document.createElement("button");
-  button.innerHTML = '<i class="fab fa-youtube"></i>';
-  button.title = "YouTube";
-  button.type = "button";
-  button.addEventListener("click", () => handleYouTubeButton(editor));
-  return button;
+const YOUTUBE_REGEX =
+  /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+
+function extractYouTubeVideoId(url) {
+  const match = url.match(YOUTUBE_REGEX);
+  return match ? match[1] : null;
 }
 
 function handleYouTubeButton(editor) {
   const url = prompt("Introduce la URL del video de YouTube:");
-  if (url === null || url.trim() === "") return;
+  if (!url || !url.trim()) return;
 
-  const videoId = extractYouTubeVideoId(url);
+  const videoId = extractYouTubeVideoId(url.trim());
   if (videoId) {
     wrapText(editor, `[youtube]${videoId}[/youtube]`, "");
   } else {
@@ -21,9 +20,11 @@ function handleYouTubeButton(editor) {
   }
 }
 
-function extractYouTubeVideoId(url) {
-  const regex =
-    /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  const match = url.match(regex);
-  return match ? match[1] : null;
+export default function createYouTubeButton(editor) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.title = "YouTube";
+  button.innerHTML = "<i class=\"fab fa-youtube\"></i>";
+  button.addEventListener("click", () => handleYouTubeButton(editor));
+  return button;
 }

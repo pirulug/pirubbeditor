@@ -1,9 +1,6 @@
-// editor.js
+import toolbar from "./components/toolbar.js";
 
-// Components
-import toolbar from "./components/toolbar";
-
-export default class PirubbEditor {
+export default class PiruBbEditor {
   constructor(editorElement, options = {}) {
     this.editorElement = editorElement;
     this.textarea = editorElement.querySelector(".pirubbeditor__input");
@@ -33,8 +30,7 @@ export default class PirubbEditor {
       "preview",
     ];
 
-    // this.toolbarOptions = options.toolbar || defaultToolbar;
-    this.toolbarOptions = options.toolbar.length
+    this.toolbarOptions = options.toolbar?.length
       ? options.toolbar
       : defaultToolbar;
 
@@ -43,11 +39,10 @@ export default class PirubbEditor {
     this.previewUrl =
       editorElement.getAttribute("data-preview-url") || "preview.php";
 
-    // this.initializeToolbar();
     toolbar(this);
     this.previewArea.style.display = "none";
 
-    // --- NUEVO: historial para undo/redo ---
+    // Historial para undo/redo
     this.history = [];
     this.redoStack = [];
     this.saveHistory();
@@ -77,7 +72,7 @@ export default class PirubbEditor {
       this.history[this.history.length - 1] !== value
     ) {
       this.history.push(value);
-      this.redoStack = []; // limpiar cuando se escribe algo nuevo
+      this.redoStack = [];
     }
   }
 

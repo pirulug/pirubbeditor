@@ -1,4 +1,4 @@
-import wrapText from "../utils/wrapText";
+import wrapText from "../utils/wrapText.js";
 
 export default function createBBCodeButton(
   editor,
@@ -9,13 +9,9 @@ export default function createBBCodeButton(
   svgPath = null
 ) {
   const button = document.createElement("button");
-  if (svgPath) {
-    button.innerHTML = svgPath;
-  } else {
-    button.innerHTML = `<i class="${iconClass}"></i>`;
-  }
-  button.title = name;
   button.type = "button";
+  button.title = name;
+  button.innerHTML = svgPath || `<i class="${iconClass}"></i>`;
   button.addEventListener("click", () => wrapText(editor, tagStart, tagEnd));
   return button;
 }

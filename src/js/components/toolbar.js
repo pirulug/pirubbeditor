@@ -1,13 +1,13 @@
 // Buttons
-import bbCodeButton from "../buttons/bbCode";
-import colorButton from "../buttons/color";
-import imageButton from "../buttons/image";
-import sizeButton from "../buttons/size";
-import urlButton from "../buttons/url";
-import youTubeButton from "../buttons/youtube";
+import bbCodeButton from "../buttons/bbCode.js";
+import colorButton from "../buttons/color.js";
+import imageButton from "../buttons/image.js";
+import sizeButton from "../buttons/size.js";
+import urlButton from "../buttons/url.js";
+import youTubeButton from "../buttons/youtube.js";
 
 // Components
-import preview from "./preview";
+import preview from "./preview.js";
 
 // IMG
 import jdownloaderIcon from "../../img/jdownloader.svg";

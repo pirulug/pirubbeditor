@@ -1,4 +1,6 @@
 export default function convertToHTML(bbcode) {
+  if (!bbcode) return "";
+
   return bbcode
     .replace(/\[h1\](.*?)\[\/h1\]/g, "<h1>$1</h1>")
     .replace(/\[h2\](.*?)\[\/h2\]/g, "<h2>$1</h2>")
@@ -10,43 +12,43 @@ export default function convertToHTML(bbcode) {
     .replace(/\[i\](.*?)\[\/i\]/g, "<em>$1</em>")
     .replace(/\[u\](.*?)\[\/u\]/g, "<u>$1</u>")
     .replace(/\[s\](.*?)\[\/s\]/g, "<s>$1</s>")
-    .replace(/\[url=(.*?)\](.*?)\[\/url\]/g, '<a href="$1">$2</a>')
-    .replace(/\[url\](.*?)\[\/url\]/g, '<a href="$1">$1</a>')
-    .replace(/\[img\](.*?)\[\/img\]/g, '<img src="$1" alt="Image">')
+    .replace(/\[url=(.*?)\](.*?)\[\/url\]/g, "<a href=\"$1\">$2</a>")
+    .replace(/\[url\](.*?)\[\/url\]/g, "<a href=\"$1\">$1</a>")
+    .replace(/\[img\](.*?)\[\/img\]/g, "<img src=\"$1\" alt=\"Image\">")
     .replace(
       /\[color=(.*?)\](.*?)\[\/color\]/g,
-      '<span style="color:$1">$2</span>'
+      "<span style=\"color:$1\">$2</span>"
     )
     .replace(
       /\[size=(.*?)\](.*?)\[\/size\]/g,
-      '<span style="font-size:$1">$2</span>'
+      "<span style=\"font-size:$1\">$2</span>"
     )
     .replace(
       /\[spoiler\](.*?)\[\/spoiler\]/g,
-      '<div class="spoiler"><button class="spoiler-toggle">Show Spoiler</button><div class="spoiler-content" style="display:none;">$1</div></div>'
+      "<div class=\"spoiler\"><button type=\"button\" class=\"spoiler-toggle\">Mostrar Spoiler</button><div class=\"spoiler-content\" style=\"display:none;\">$1</div></div>"
     )
     .replace(
       /\[youtube\](.*?)\[\/youtube\]/g,
-      '<lite-youtube videoid="$1"></lite-youtube>'
+      "<lite-youtube videoid=\"$1\"></lite-youtube>"
     )
     .replace(
       /\[jdownloader\](.*?)\[\/jdownloader\]/g,
-      '<a href="$1">JDownloader Link</a>'
+      "<a href=\"$1\">JDownloader Link</a>"
     )
-    .replace(/\[vip\](.*?)\[\/vip\]/g, '<span class="vip">$1</span>')
+    .replace(/\[vip\](.*?)\[\/vip\]/g, "<span class=\"vip\">$1</span>")
     .replace(/\[code\](.*?)\[\/code\]/g, "<pre><code>$1</code></pre>")
     .replace(/\[quote\](.*?)\[\/quote\]/g, "<blockquote>$1</blockquote>")
     .replace(
       /\[left\](.*?)\[\/left\]/g,
-      '<div style="text-align:left">$1</div>'
+      "<div style=\"text-align:left\">$1</div>"
     )
     .replace(
       /\[center\](.*?)\[\/center\]/g,
-      '<div style="text-align:center">$1</div>'
+      "<div style=\"text-align:center\">$1</div>"
     )
     .replace(
       /\[right\](.*?)\[\/right\]/g,
-      '<div style="text-align:right">$1</div>'
+      "<div style=\"text-align:right\">$1</div>"
     )
     .replace(/\n/g, "<br>")
     .replace(/\[ol\](.*?)\[\/ol\]/g, "<ol>$1</ol>")
