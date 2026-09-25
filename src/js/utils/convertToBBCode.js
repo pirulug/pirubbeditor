@@ -131,7 +131,15 @@ export default function convertToBBCode(html) {
       case "a": {
         const href = node.getAttribute("href") || "";
         if (node.classList.contains("jdownloader-link")) {
-          return `[jdownloader]${href}[/jdownloader]`;
+          const trimmedInner = inner.trim();
+          if (
+            !trimmedInner ||
+            trimmedInner === "Descargar con JDownloader" ||
+            trimmedInner === href.trim()
+          ) {
+            return `[jdownloader]${href}[/jdownloader]`;
+          }
+          return `[jdownloader=${href}]${inner}[/jdownloader]`;
         }
         if (inner.trim() === href.trim()) {
           return `[url]${href}[/url]`;

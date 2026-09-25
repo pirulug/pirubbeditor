@@ -7,10 +7,10 @@ import imageButton from "../buttons/image.js";
 import sizeButton from "../buttons/size.js";
 import urlButton from "../buttons/url.js";
 import youTubeButton from "../buttons/youtube.js";
+import createJDownloaderButton from "../buttons/jdownloader.js";
 import codeButton from "./codeToggle.js";
 
 // IMG
-import jdownloaderIcon from "../../img/jdownloader.svg";
 import shortIcon from "../../img/short.svg";
 
 export default function toolbar(editor) {
@@ -93,15 +93,7 @@ export default function toolbar(editor) {
         "[/spoiler]",
         "fas fa-eye-slash"
       ),
-    jdownloader: () =>
-      bbCodeButton(
-        editor,
-        "JDownloader",
-        "[jdownloader]",
-        "[/jdownloader]",
-        null,
-        jdownloaderIcon
-      ),
+    jdownloader: () => createJDownloaderButton(editor),
     vip: () => bbCodeButton(editor, "Vip", "[vip]", "[/vip]", "fas fa-star"),
     youtube: () => youTubeButton(editor),
     code: () => codeButton(editor),

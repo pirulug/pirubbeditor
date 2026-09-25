@@ -367,27 +367,74 @@ export function handlePreviewKeyDown(editor, e) {
   }
 }
 
-export function handlePreviewClick(editor, e) {
-  if (e.target === editor.previewArea) {
-    const last = editor.previewArea.lastElementChild;
-    if (
-      !last ||
-      last.tagName.toLowerCase() !== "p" ||
-      last.textContent.trim() !== ""
-    ) {
-      const p = document.createElement("p");
-      p.innerHTML = "<br>";
-      editor.previewArea.appendChild(p);
-
-      const sel = window.getSelection();
+function getContentBottom(previewArea) {
+  let maxBottom = 0;
+  const children = previewArea.childNodes;
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    if (child.nodeType === Node.ELEMENT_NODE) {
+      const rect = child.getBoundingClientRect();
+      if (rect.bottom > maxBottom) {
+        maxBottom = rect.bottom;
+      }
+    } else if (child.nodeType === Node.TEXT_NODE && child.textContent.trim()) {
       const range = document.createRange();
-      range.setStart(p, 0);
+      range.selectNodeContents(child);
+      const rect = range.getBoundingClientRect();
+      if (rect.bottom > maxBottom) {
+        maxBottom = rect.bottom;
+      }
+    }
+  }
+  if (maxBottom === 0) {
+    maxBottom = previewArea.getBoundingClientRect().top;
+  }
+  return maxBottom;
+}
+
+export function handlePreviewClick(editor, e) {
+  if (e.target !== editor.previewArea) return;
+
+  const contentBottom = getContentBottom(editor.previewArea);
+
+  // Solo actuar si el clic ocurrió claramente por debajo de todo el contenido existente
+  if (e.clientY <= contentBottom + 15) {
+    return;
+  }
+
+  const last = editor.previewArea.lastElementChild;
+  if (
+    last &&
+    last.tagName.toLowerCase() === "p" &&
+    last.textContent.trim() === ""
+  ) {
+    // Si ya existe un párrafo vacío al final, enfocarlo
+    const sel = window.getSelection();
+    if (sel) {
+      const range = document.createRange();
+      range.setStart(last, 0);
       range.collapse(true);
       sel.removeAllRanges();
       sel.addRange(range);
-
       editor.saveSelection();
-      editor.syncToTextarea();
     }
+    return;
   }
+
+  // Insertar un nuevo párrafo al final para permitir escribir fuera de bloques o al fondo del editor
+  const p = document.createElement("p");
+  p.innerHTML = "<br>";
+  editor.previewArea.appendChild(p);
+
+  const sel = window.getSelection();
+  if (sel) {
+    const range = document.createRange();
+    range.setStart(p, 0);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  editor.saveSelection();
+  editor.syncToTextarea();
 }

@@ -105,6 +105,10 @@ export default function convertToHTML(bbcode) {
       "<lite-youtube contenteditable=\"false\" videoid=\"$1\"></lite-youtube>"
     )
     .replace(
+      /\[jdownloader=(.*?)\](.*?)\[\/jdownloader\]/gis,
+      "<a href=\"$1\" class=\"jdownloader-link\" target=\"_blank\" rel=\"noopener noreferrer\">$2</a>"
+    )
+    .replace(
       /\[jdownloader\](.*?)\[\/jdownloader\]/gis,
       "<a href=\"$1\" class=\"jdownloader-link\" target=\"_blank\" rel=\"noopener noreferrer\">Descargar con JDownloader</a>"
     )
