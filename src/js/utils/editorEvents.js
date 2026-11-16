@@ -37,30 +37,30 @@ function getRemainingTextInContainer(containerNode, offset, rootContainer) {
   }
 }
 
-function handleBlockquoteEnter(editor, blockquote, range, sel, e) {
+function handleContainerBlockEnter(editor, contentEl, wrapperEl, range, sel, e) {
   e.preventDefault();
 
   const textAfterCaret = getRemainingTextInContainer(
     range.endContainer,
     range.endOffset,
-    blockquote
+    contentEl
   );
 
   const isAtEmptyLineAtEnd =
-    !blockquote.textContent.trim() ||
+    !contentEl.textContent.trim() ||
     (isCaretAfterBr(range.startContainer, range.startOffset) &&
       !textAfterCaret.trim());
 
   if (isAtEmptyLineAtEnd) {
-    // Salir de la cita: limpiar <br> finales e insertar <p><br></p> después de blockquote
-    cleanTrailingBrs(blockquote);
+    // Salir del bloque: limpiar <br> finales e insertar <p><br></p> después del contenedor
+    cleanTrailingBrs(contentEl);
 
     const p = document.createElement("p");
     p.innerHTML = "<br>";
-    if (blockquote.nextSibling) {
-      blockquote.parentNode.insertBefore(p, blockquote.nextSibling);
+    if (wrapperEl.nextSibling) {
+      wrapperEl.parentNode.insertBefore(p, wrapperEl.nextSibling);
     } else {
-      blockquote.parentNode.appendChild(p);
+      wrapperEl.parentNode.appendChild(p);
     }
 
     const newRange = document.createRange();
@@ -74,7 +74,7 @@ function handleBlockquoteEnter(editor, blockquote, range, sel, e) {
     return;
   }
 
-  // Insertar un salto de línea dentro de la cita sin duplicar el blockquote
+  // Insertar un salto de línea dentro del bloque sin duplicar el contenedor
   range.deleteContents();
   const br = document.createElement("br");
   range.insertNode(br);
@@ -82,7 +82,7 @@ function handleBlockquoteEnter(editor, blockquote, range, sel, e) {
   const next = br.nextSibling;
   if (!next || (next.nodeType === Node.TEXT_NODE && !next.textContent)) {
     const trailingBr = document.createElement("br");
-    blockquote.appendChild(trailingBr);
+    contentEl.appendChild(trailingBr);
   }
 
   const newRange = document.createRange();
@@ -176,135 +176,15 @@ function handleListEnter(editor, li, range, sel, e) {
   }
 }
 
-function handleSpoilerEnter(editor, spoilerContent, range, sel, e) {
-  e.preventDefault();
-
-  const spoilerContainer =
-    spoilerContent.closest(".spoiler") || spoilerContent;
-
-  const textAfterCaret = getRemainingTextInContainer(
-    range.endContainer,
-    range.endOffset,
-    spoilerContent
-  );
-
-  const isAtEmptyLineAtEnd =
-    !spoilerContent.textContent.trim() ||
-    (isCaretAfterBr(range.startContainer, range.startOffset) &&
-      !textAfterCaret.trim());
-
-  if (isAtEmptyLineAtEnd) {
-    // Salir del spoiler: limpiar <br> finales e insertar <p><br></p> después de .spoiler
-    cleanTrailingBrs(spoilerContent);
-
-    const p = document.createElement("p");
-    p.innerHTML = "<br>";
-    if (spoilerContainer.nextSibling) {
-      spoilerContainer.parentNode.insertBefore(p, spoilerContainer.nextSibling);
-    } else {
-      spoilerContainer.parentNode.appendChild(p);
-    }
-
-    const newRange = document.createRange();
-    newRange.setStart(p, 0);
-    newRange.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(newRange);
-
-    editor.saveSelection();
-    editor.syncToTextarea();
-    return;
-  }
-
-  // Insertar un salto de línea dentro del spoiler sin duplicar el contenedor
-  range.deleteContents();
-  const br = document.createElement("br");
-  range.insertNode(br);
-
-  const next = br.nextSibling;
-  if (!next || (next.nodeType === Node.TEXT_NODE && !next.textContent)) {
-    const trailingBr = document.createElement("br");
-    spoilerContent.appendChild(trailingBr);
-  }
-
-  const newRange = document.createRange();
-  newRange.setStartAfter(br);
-  newRange.collapse(true);
-  sel.removeAllRanges();
-  sel.addRange(newRange);
-
-  editor.saveSelection();
-  editor.syncToTextarea();
-}
-
-function handleVipEnter(editor, vipContent, range, sel, e) {
-  e.preventDefault();
-
-  const vipContainer = vipContent.closest(".vip-box") || vipContent;
-
-  const textAfterCaret = getRemainingTextInContainer(
-    range.endContainer,
-    range.endOffset,
-    vipContent
-  );
-
-  const isAtEmptyLineAtEnd =
-    !vipContent.textContent.trim() ||
-    (isCaretAfterBr(range.startContainer, range.startOffset) &&
-      !textAfterCaret.trim());
-
-  if (isAtEmptyLineAtEnd) {
-    // Salir del bloque VIP: limpiar <br> finales e insertar <p><br></p> después de .vip-box
-    cleanTrailingBrs(vipContent);
-
-    const p = document.createElement("p");
-    p.innerHTML = "<br>";
-    if (vipContainer.nextSibling) {
-      vipContainer.parentNode.insertBefore(p, vipContainer.nextSibling);
-    } else {
-      vipContainer.parentNode.appendChild(p);
-    }
-
-    const newRange = document.createRange();
-    newRange.setStart(p, 0);
-    newRange.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(newRange);
-
-    editor.saveSelection();
-    editor.syncToTextarea();
-    return;
-  }
-
-  // Insertar un salto de línea dentro del contenido VIP sin duplicar el contenedor
-  range.deleteContents();
-  const br = document.createElement("br");
-  range.insertNode(br);
-
-  const next = br.nextSibling;
-  if (!next || (next.nodeType === Node.TEXT_NODE && !next.textContent)) {
-    const trailingBr = document.createElement("br");
-    vipContent.appendChild(trailingBr);
-  }
-
-  const newRange = document.createRange();
-  newRange.setStartAfter(br);
-  newRange.collapse(true);
-  sel.removeAllRanges();
-  sel.addRange(newRange);
-
-  editor.saveSelection();
-  editor.syncToTextarea();
-}
-
 export function handlePreviewKeyDown(editor, e) {
-  if (e.ctrlKey || e.metaKey) {
-    if (e.key === "z") {
+  if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+    const key = e.key.toLowerCase();
+    if (key === "z" && !e.shiftKey) {
       e.preventDefault();
       editor.undo();
       return;
     }
-    if (e.key === "y") {
+    if ((key === "y" && !e.shiftKey) || (key === "z" && e.shiftKey)) {
       e.preventDefault();
       editor.redo();
       return;
@@ -330,7 +210,8 @@ export function handlePreviewKeyDown(editor, e) {
       const targetContent = spoilerEl.classList.contains("spoiler-content")
         ? spoilerEl
         : spoilerEl.querySelector(".spoiler-content") || spoilerEl;
-      handleSpoilerEnter(editor, targetContent, range, sel, e);
+      const spoilerWrapper = targetContent.closest(".spoiler") || targetContent;
+      handleContainerBlockEnter(editor, targetContent, spoilerWrapper, range, sel, e);
       return;
     }
 
@@ -340,14 +221,15 @@ export function handlePreviewKeyDown(editor, e) {
       const targetContent = vipEl.classList.contains("vip-content")
         ? vipEl
         : vipEl.querySelector(".vip-content") || vipEl;
-      handleVipEnter(editor, targetContent, range, sel, e);
+      const vipWrapper = targetContent.closest(".vip-box") || targetContent;
+      handleContainerBlockEnter(editor, targetContent, vipWrapper, range, sel, e);
       return;
     }
 
     // Manejo de Citas (blockquote)
     const blockquote = elementNode.closest("blockquote");
     if (blockquote && editor.previewArea.contains(blockquote)) {
-      handleBlockquoteEnter(editor, blockquote, range, sel, e);
+      handleContainerBlockEnter(editor, blockquote, blockquote, range, sel, e);
       return;
     }
 

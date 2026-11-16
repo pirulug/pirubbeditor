@@ -1,5 +1,6 @@
 import { applyFormat } from "../utils/formatHelper.js";
 import createModal from "../utils/modal.js";
+import { escapeHTML, sanitizeUrl } from "../utils/sanitize.js";
 
 function getSelectedText(editor) {
   if (editor.isCodeMode) {
@@ -72,6 +73,12 @@ function openURLModal(editor) {
       const rawUrl = urlInput.value.trim();
       if (!rawUrl) return;
 
+      const safeUrl = sanitizeUrl(rawUrl);
+      if (!safeUrl) {
+        alert("URL no válida o protocolo no permitido");
+        return;
+      }
+
       const linkText = textInput.value.trim();
 
       if (editor.isCodeMode) {
@@ -86,26 +93,27 @@ function openURLModal(editor) {
         }
       } else {
         const displayText = linkText || rawUrl;
+        const safeDisplayText = escapeHTML(displayText);
         if (selectedText && linkText === selectedText) {
           applyFormat(
             editor,
             `[url=${rawUrl}]`,
             "[/url]",
-            `<a href="${rawUrl}" target="_blank" rel="noopener noreferrer"></a>`
+            `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer"></a>`
           );
         } else if (linkText && linkText !== rawUrl) {
           applyFormat(
             editor,
             `[url=${rawUrl}]${displayText}[/url]`,
             "",
-            `<a href="${rawUrl}" target="_blank" rel="noopener noreferrer">${displayText}</a>`
+            `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeDisplayText}</a>`
           );
         } else {
           applyFormat(
             editor,
             `[url]${rawUrl}[/url]`,
             "",
-            `<a href="${rawUrl}" target="_blank" rel="noopener noreferrer">${rawUrl}</a>`
+            `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a>`
           );
         }
       }

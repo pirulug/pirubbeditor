@@ -1,5 +1,6 @@
 import { applyFormat } from "../utils/formatHelper.js";
 import createModal from "../utils/modal.js";
+import { sanitizeCssDimension } from "../utils/sanitize.js";
 
 const YOUTUBE_REGEX =
   /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
@@ -71,8 +72,8 @@ function openYouTubeModal(editor) {
         return;
       }
 
-      const widthVal = widthInput.value.trim();
-      const heightVal = heightInput.value.trim();
+      const widthVal = sanitizeCssDimension(widthInput.value);
+      const heightVal = sanitizeCssDimension(heightInput.value);
 
       let bbTag = "[youtube";
       let styleStr = "max-width:100%;";
@@ -80,12 +81,12 @@ function openYouTubeModal(editor) {
       if (widthVal) {
         const wClean = widthVal.replace("px", "");
         bbTag += ` width=${wClean}`;
-        styleStr += `width:${/^\d+$/.test(widthVal) ? widthVal + "px" : widthVal};`;
+        styleStr += `width:${widthVal};`;
       }
       if (heightVal) {
         const hClean = heightVal.replace("px", "");
         bbTag += ` height=${hClean}`;
-        styleStr += `height:${/^\d+$/.test(heightVal) ? heightVal + "px" : heightVal};`;
+        styleStr += `height:${heightVal};`;
       }
       bbTag += `]${videoId}[/youtube]`;
 

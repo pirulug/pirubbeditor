@@ -8,6 +8,9 @@ import {
 } from "./utils/editorEvents.js";
 import initMediaResizer from "./utils/mediaResizer.js";
 
+const MAX_HISTORY = 100;
+const HISTORY_DEBOUNCE_MS = 300;
+
 export default class PiruBbEditor {
   constructor(target, options = {}) {
     const element =
@@ -99,10 +102,11 @@ export default class PiruBbEditor {
     // Historial para undo/redo
     this.history = [];
     this.redoStack = [];
+    this._historyTimer = null;
     this.saveHistory();
 
     // Rastrear en tiempo real la posición del cursor
-    const onSelectionChange = () => {
+    this._onSelectionChange = () => {
       if (!this.isCodeMode) {
         const sel = window.getSelection();
         if (
@@ -118,7 +122,7 @@ export default class PiruBbEditor {
       }
     };
 
-    document.addEventListener("selectionchange", onSelectionChange);
+    document.addEventListener("selectionchange", this._onSelectionChange);
 
     const onTextareaSelect = () => {
       if (this.isCodeMode) {
@@ -138,12 +142,16 @@ export default class PiruBbEditor {
 
     // Eventos de entrada en textarea
     this.textarea.addEventListener("input", () => {
+      this.scheduleHistorySave();
+    });
+
+    this.textarea.addEventListener("blur", () => {
       this.saveHistory();
     });
 
     // Eventos de edición directa en previewArea
     this.previewArea.addEventListener("input", () => {
-      this.syncToTextarea();
+      this.syncToTextarea({ debounceHistory: true });
     });
 
     this.previewArea.addEventListener("blur", () => {
@@ -152,11 +160,12 @@ export default class PiruBbEditor {
 
     // Atajos de teclado en textarea
     this.textarea.addEventListener("keydown", (e) => {
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === "z") {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+        const key = e.key.toLowerCase();
+        if (key === "z" && !e.shiftKey) {
           e.preventDefault();
           this.undo();
-        } else if (e.key === "y") {
+        } else if ((key === "y" && !e.shiftKey) || (key === "z" && e.shiftKey)) {
           e.preventDefault();
           this.redo();
         }
@@ -307,9 +316,13 @@ export default class PiruBbEditor {
     return convertToHTML(this.textarea.value);
   }
 
-  syncToTextarea() {
+  syncToTextarea({ debounceHistory = false } = {}) {
     this.textarea.value = convertToBBCode(this.previewArea.innerHTML);
-    this.saveHistory();
+    if (debounceHistory) {
+      this.scheduleHistorySave();
+    } else {
+      this.saveHistory();
+    }
   }
 
   syncToPreview() {
@@ -337,37 +350,86 @@ export default class PiruBbEditor {
     }
   }
 
+  scheduleHistorySave() {
+    if (this._historyTimer) {
+      clearTimeout(this._historyTimer);
+    }
+    this._historyTimer = setTimeout(() => {
+      this._historyTimer = null;
+      this.saveHistory();
+    }, HISTORY_DEBOUNCE_MS);
+  }
+
   // Guardar el estado en el stack
   saveHistory() {
+    if (this._historyTimer) {
+      clearTimeout(this._historyTimer);
+      this._historyTimer = null;
+    }
     const value = this.textarea.value;
     if (
       this.history.length === 0 ||
       this.history[this.history.length - 1] !== value
     ) {
       this.history.push(value);
+      if (this.history.length > MAX_HISTORY) {
+        this.history.shift();
+      }
       this.redoStack = [];
     }
   }
 
   undo() {
+    if (this._historyTimer) {
+      clearTimeout(this._historyTimer);
+      this._historyTimer = null;
+      this.saveHistory();
+    }
     if (this.history.length > 1) {
       const current = this.history.pop();
       this.redoStack.push(current);
       this.textarea.value = this.history[this.history.length - 1];
       if (!this.isCodeMode) {
         updatePreview(this);
+        this.previewArea.focus();
+      } else {
+        this.textarea.focus();
       }
     }
   }
 
   redo() {
+    if (this._historyTimer) {
+      clearTimeout(this._historyTimer);
+      this._historyTimer = null;
+    }
     if (this.redoStack.length > 0) {
       const next = this.redoStack.pop();
       this.history.push(next);
+      if (this.history.length > MAX_HISTORY) {
+        this.history.shift();
+      }
       this.textarea.value = next;
       if (!this.isCodeMode) {
         updatePreview(this);
+        this.previewArea.focus();
+      } else {
+        this.textarea.focus();
       }
+    }
+  }
+
+  destroy() {
+    if (this._historyTimer) {
+      clearTimeout(this._historyTimer);
+      this._historyTimer = null;
+    }
+    if (this._onSelectionChange) {
+      document.removeEventListener("selectionchange", this._onSelectionChange);
+      this._onSelectionChange = null;
+    }
+    if (this.mediaResizer && typeof this.mediaResizer.hide === "function") {
+      this.mediaResizer.hide();
     }
   }
 

@@ -1,5 +1,6 @@
 import { applyFormat } from "../utils/formatHelper.js";
 import createModal from "../utils/modal.js";
+import { sanitizeUrl, sanitizeCssDimension } from "../utils/sanitize.js";
 
 export default function createImageButton(editor) {
   const button = document.createElement("button");
@@ -63,8 +64,14 @@ export default function createImageButton(editor) {
         const cleanUrl = urlInput.value.trim();
         if (!cleanUrl) return;
 
-        const widthVal = widthInput.value.trim();
-        const heightVal = heightInput.value.trim();
+        const safeUrl = sanitizeUrl(cleanUrl);
+        if (!safeUrl) {
+          alert("URL de imagen no válida o protocolo no permitido");
+          return;
+        }
+
+        const widthVal = sanitizeCssDimension(widthInput.value);
+        const heightVal = sanitizeCssDimension(heightInput.value);
 
         let bbTag = "[img";
         let styleStr = "";
@@ -72,17 +79,17 @@ export default function createImageButton(editor) {
         if (widthVal) {
           const wClean = widthVal.replace("px", "");
           bbTag += ` width=${wClean}`;
-          styleStr += `width:${/^\d+$/.test(widthVal) ? widthVal + "px" : widthVal};`;
+          styleStr += `width:${widthVal};`;
         }
         if (heightVal) {
           const hClean = heightVal.replace("px", "");
           bbTag += ` height=${hClean}`;
-          styleStr += `height:${/^\d+$/.test(heightVal) ? heightVal + "px" : heightVal};`;
+          styleStr += `height:${heightVal};`;
         }
         bbTag += `]${cleanUrl}[/img]`;
 
         const styleAttr = styleStr ? ` style="${styleStr}"` : "";
-        const htmlTag = `<img src="${cleanUrl}"${styleAttr} alt="Image">`;
+        const htmlTag = `<img src="${safeUrl}"${styleAttr} alt="Image">`;
 
         applyFormat(editor, bbTag, "", htmlTag);
       },

@@ -27,10 +27,16 @@ export default function createModal(editor, {
 
   const header = document.createElement("div");
   header.className = "pirubbeditor-modal__header";
-  header.innerHTML = `
-    <h3 class="pirubbeditor-modal__title">${title}</h3>
-    <button type="button" class="pirubbeditor-modal__close" aria-label="Cerrar">&times;</button>
-  `;
+  const titleEl = document.createElement("h3");
+  titleEl.className = "pirubbeditor-modal__title";
+  titleEl.textContent = title;
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.className = "pirubbeditor-modal__close";
+  closeBtn.setAttribute("aria-label", "Cerrar");
+  closeBtn.innerHTML = "&times;";
+  header.appendChild(titleEl);
+  header.appendChild(closeBtn);
 
   const body = document.createElement("div");
   body.className = "pirubbeditor-modal__body";
@@ -42,18 +48,30 @@ export default function createModal(editor, {
       body.appendChild(customBody);
     }
   } else {
-    body.innerHTML = `
-      <label class="pirubbeditor-modal__label">${label}</label>
-      <input type="text" class="pirubbeditor-modal__input" value="${defaultValue}" placeholder="${placeholder}" />
-    `;
+    const labelEl = document.createElement("label");
+    labelEl.className = "pirubbeditor-modal__label";
+    labelEl.textContent = label;
+    const defaultInput = document.createElement("input");
+    defaultInput.type = "text";
+    defaultInput.className = "pirubbeditor-modal__input";
+    defaultInput.value = defaultValue;
+    defaultInput.placeholder = placeholder;
+    body.appendChild(labelEl);
+    body.appendChild(defaultInput);
   }
 
   const footer = document.createElement("div");
   footer.className = "pirubbeditor-modal__footer";
-  footer.innerHTML = `
-    <button type="button" class="pirubbeditor-modal__btn pirubbeditor-modal__btn--primary">${confirmText}</button>
-    <button type="button" class="pirubbeditor-modal__btn pirubbeditor-modal__btn--secondary">${cancelText}</button>
-  `;
+  const confirmBtn = document.createElement("button");
+  confirmBtn.type = "button";
+  confirmBtn.className = "pirubbeditor-modal__btn pirubbeditor-modal__btn--primary";
+  confirmBtn.textContent = confirmText;
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.className = "pirubbeditor-modal__btn pirubbeditor-modal__btn--secondary";
+  cancelBtn.textContent = cancelText;
+  footer.appendChild(confirmBtn);
+  footer.appendChild(cancelBtn);
 
   modal.appendChild(header);
   modal.appendChild(body);
@@ -62,9 +80,6 @@ export default function createModal(editor, {
   editor.editorElement.appendChild(overlay);
 
   const input = modal.querySelector(".pirubbeditor-modal__input");
-  const closeBtn = modal.querySelector(".pirubbeditor-modal__close");
-  const cancelBtn = modal.querySelector(".pirubbeditor-modal__btn--secondary");
-  const confirmBtn = modal.querySelector(".pirubbeditor-modal__btn--primary");
 
   const closeModal = () => {
     overlay.remove();
