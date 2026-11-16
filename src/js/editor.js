@@ -12,6 +12,35 @@ const MAX_HISTORY = 100;
 const HISTORY_DEBOUNCE_MS = 300;
 
 export default class PiruBbEditor {
+  static defaultToolbar = [
+    "heading",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "quote",
+    "ol",
+    "ul",
+    "li",
+    "left",
+    "center",
+    "right",
+    "url",
+    "image",
+    "color",
+    "size",
+    "spoiler",
+    "jdownloader",
+    "vip",
+    "youtube",
+    "code",
+  ];
+
+  #history = [];
+  #redoStack = [];
+  #historyTimer = null;
+  #abortController = new AbortController();
+
   constructor(target, options = {}) {
     const element =
       typeof target === "string" ? document.querySelector(target) : target;
@@ -24,30 +53,6 @@ export default class PiruBbEditor {
     this.targetElement = element;
     this.options = options;
     this.savedSelection = null;
-
-    const defaultToolbar = [
-      "heading",
-      "bold",
-      "italic",
-      "underline",
-      "strike",
-      "quote",
-      "ol",
-      "ul",
-      "li",
-      "left",
-      "center",
-      "right",
-      "url",
-      "image",
-      "color",
-      "size",
-      "spoiler",
-      "jdownloader",
-      "vip",
-      "youtube",
-      "code",
-    ];
 
     // Opciones desde data-attributes o configuración JS
     let dataToolbar = [];
@@ -64,7 +69,7 @@ export default class PiruBbEditor {
       ? options.toolbar
       : dataToolbar.length
       ? dataToolbar
-      : defaultToolbar;
+      : PiruBbEditor.defaultToolbar;
 
     this.previewType =
       options.previewType ||
@@ -85,13 +90,19 @@ export default class PiruBbEditor {
     // Inicializar barra de herramientas
     toolbar(this);
 
+    const { signal } = this.#abortController;
+
     // Evitar que el clic en los botones de la barra de herramientas robe el foco y pierda el cursor
-    this.toolbar.addEventListener("mousedown", (e) => {
-      this.saveSelection();
-      if (!e.target.closest("select")) {
-        e.preventDefault();
-      }
-    });
+    this.toolbar.addEventListener(
+      "mousedown",
+      (e) => {
+        this.saveSelection();
+        if (!e.target.closest("select")) {
+          e.preventDefault();
+        }
+      },
+      { signal }
+    );
 
     // Iniciar por defecto en modo visual/preview como SCEditor
     this.isCodeMode = false;
@@ -99,30 +110,29 @@ export default class PiruBbEditor {
     this.previewArea.style.display = "block";
     updatePreview(this);
 
-    // Historial para undo/redo
-    this.history = [];
-    this.redoStack = [];
-    this._historyTimer = null;
+    // Historial inicial para undo/redo
     this.saveHistory();
 
     // Rastrear en tiempo real la posición del cursor
-    this._onSelectionChange = () => {
-      if (!this.isCodeMode) {
-        const sel = window.getSelection();
-        if (
-          sel &&
-          sel.rangeCount > 0 &&
-          this.previewArea.contains(sel.anchorNode)
-        ) {
-          this.savedSelection = {
-            type: "range",
-            range: sel.getRangeAt(0).cloneRange(),
-          };
+    document.addEventListener(
+      "selectionchange",
+      () => {
+        if (!this.isCodeMode) {
+          const sel = window.getSelection();
+          if (
+            sel &&
+            sel.rangeCount > 0 &&
+            this.previewArea.contains(sel.anchorNode)
+          ) {
+            this.savedSelection = {
+              type: "range",
+              range: sel.getRangeAt(0).cloneRange(),
+            };
+          }
         }
-      }
-    };
-
-    document.addEventListener("selectionchange", this._onSelectionChange);
+      },
+      { signal }
+    );
 
     const onTextareaSelect = () => {
       if (this.isCodeMode) {
@@ -134,53 +144,79 @@ export default class PiruBbEditor {
       }
     };
 
-    this.textarea.addEventListener("input", onTextareaSelect);
-    this.textarea.addEventListener("keyup", onTextareaSelect);
-    this.textarea.addEventListener("mouseup", onTextareaSelect);
-    this.textarea.addEventListener("select", onTextareaSelect);
-    this.textarea.addEventListener("focus", onTextareaSelect);
+    for (const evt of ["input", "keyup", "mouseup", "select", "focus"]) {
+      this.textarea.addEventListener(evt, onTextareaSelect, { signal });
+    }
 
     // Eventos de entrada en textarea
-    this.textarea.addEventListener("input", () => {
-      this.scheduleHistorySave();
-    });
+    this.textarea.addEventListener(
+      "input",
+      () => {
+        this.scheduleHistorySave();
+      },
+      { signal }
+    );
 
-    this.textarea.addEventListener("blur", () => {
-      this.saveHistory();
-    });
+    this.textarea.addEventListener(
+      "blur",
+      () => {
+        this.saveHistory();
+      },
+      { signal }
+    );
 
     // Eventos de edición directa en previewArea
-    this.previewArea.addEventListener("input", () => {
-      this.syncToTextarea({ debounceHistory: true });
-    });
+    this.previewArea.addEventListener(
+      "input",
+      () => {
+        this.syncToTextarea({ debounceHistory: true });
+      },
+      { signal }
+    );
 
-    this.previewArea.addEventListener("blur", () => {
-      this.syncToTextarea();
-    });
+    this.previewArea.addEventListener(
+      "blur",
+      () => {
+        this.syncToTextarea();
+      },
+      { signal }
+    );
 
     // Atajos de teclado en textarea
-    this.textarea.addEventListener("keydown", (e) => {
-      if ((e.ctrlKey || e.metaKey) && !e.altKey) {
-        const key = e.key.toLowerCase();
-        if (key === "z" && !e.shiftKey) {
-          e.preventDefault();
-          this.undo();
-        } else if ((key === "y" && !e.shiftKey) || (key === "z" && e.shiftKey)) {
-          e.preventDefault();
-          this.redo();
+    this.textarea.addEventListener(
+      "keydown",
+      (e) => {
+        if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+          const key = e.key.toLowerCase();
+          if (key === "z" && !e.shiftKey) {
+            e.preventDefault();
+            this.undo();
+          } else if ((key === "y" && !e.shiftKey) || (key === "z" && e.shiftKey)) {
+            e.preventDefault();
+            this.redo();
+          }
         }
-      }
-    });
+      },
+      { signal }
+    );
 
     // Atajos de teclado y manejo de bloques/citas en previewArea
-    this.previewArea.addEventListener("keydown", (e) => {
-      handlePreviewKeyDown(this, e);
-    });
+    this.previewArea.addEventListener(
+      "keydown",
+      (e) => {
+        handlePreviewKeyDown(this, e);
+      },
+      { signal }
+    );
 
     // Permitir hacer clic en el espacio inferior vacío para añadir líneas y texto después de bloques como spoilers y citas
-    this.previewArea.addEventListener("click", (e) => {
-      handlePreviewClick(this, e);
-    });
+    this.previewArea.addEventListener(
+      "click",
+      (e) => {
+        handlePreviewClick(this, e);
+      },
+      { signal }
+    );
 
     // Inicializar redimensionador y opciones flotantes para imágenes y videos
     this.mediaResizer = initMediaResizer(this);
@@ -351,44 +387,41 @@ export default class PiruBbEditor {
   }
 
   scheduleHistorySave() {
-    if (this._historyTimer) {
-      clearTimeout(this._historyTimer);
+    if (this.#historyTimer) {
+      clearTimeout(this.#historyTimer);
     }
-    this._historyTimer = setTimeout(() => {
-      this._historyTimer = null;
+    this.#historyTimer = setTimeout(() => {
+      this.#historyTimer = null;
       this.saveHistory();
     }, HISTORY_DEBOUNCE_MS);
   }
 
   // Guardar el estado en el stack
   saveHistory() {
-    if (this._historyTimer) {
-      clearTimeout(this._historyTimer);
-      this._historyTimer = null;
+    if (this.#historyTimer) {
+      clearTimeout(this.#historyTimer);
+      this.#historyTimer = null;
     }
     const value = this.textarea.value;
-    if (
-      this.history.length === 0 ||
-      this.history[this.history.length - 1] !== value
-    ) {
-      this.history.push(value);
-      if (this.history.length > MAX_HISTORY) {
-        this.history.shift();
+    if (this.#history.length === 0 || this.#history.at(-1) !== value) {
+      this.#history.push(value);
+      if (this.#history.length > MAX_HISTORY) {
+        this.#history.shift();
       }
-      this.redoStack = [];
+      this.#redoStack = [];
     }
   }
 
   undo() {
-    if (this._historyTimer) {
-      clearTimeout(this._historyTimer);
-      this._historyTimer = null;
+    if (this.#historyTimer) {
+      clearTimeout(this.#historyTimer);
+      this.#historyTimer = null;
       this.saveHistory();
     }
-    if (this.history.length > 1) {
-      const current = this.history.pop();
-      this.redoStack.push(current);
-      this.textarea.value = this.history[this.history.length - 1];
+    if (this.#history.length > 1) {
+      const current = this.#history.pop();
+      this.#redoStack.push(current);
+      this.textarea.value = this.#history.at(-1);
       if (!this.isCodeMode) {
         updatePreview(this);
         this.previewArea.focus();
@@ -399,15 +432,15 @@ export default class PiruBbEditor {
   }
 
   redo() {
-    if (this._historyTimer) {
-      clearTimeout(this._historyTimer);
-      this._historyTimer = null;
+    if (this.#historyTimer) {
+      clearTimeout(this.#historyTimer);
+      this.#historyTimer = null;
     }
-    if (this.redoStack.length > 0) {
-      const next = this.redoStack.pop();
-      this.history.push(next);
-      if (this.history.length > MAX_HISTORY) {
-        this.history.shift();
+    if (this.#redoStack.length > 0) {
+      const next = this.#redoStack.pop();
+      this.#history.push(next);
+      if (this.#history.length > MAX_HISTORY) {
+        this.#history.shift();
       }
       this.textarea.value = next;
       if (!this.isCodeMode) {
@@ -420,14 +453,11 @@ export default class PiruBbEditor {
   }
 
   destroy() {
-    if (this._historyTimer) {
-      clearTimeout(this._historyTimer);
-      this._historyTimer = null;
+    if (this.#historyTimer) {
+      clearTimeout(this.#historyTimer);
+      this.#historyTimer = null;
     }
-    if (this._onSelectionChange) {
-      document.removeEventListener("selectionchange", this._onSelectionChange);
-      this._onSelectionChange = null;
-    }
+    this.#abortController.abort();
     if (this.mediaResizer && typeof this.mediaResizer.hide === "function") {
       this.mediaResizer.hide();
     }

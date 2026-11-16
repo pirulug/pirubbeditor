@@ -251,9 +251,7 @@ export function handlePreviewKeyDown(editor, e) {
 
 function getContentBottom(previewArea) {
   let maxBottom = 0;
-  const children = previewArea.childNodes;
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i];
+  for (const child of previewArea.childNodes) {
     if (child.nodeType === Node.ELEMENT_NODE) {
       const rect = child.getBoundingClientRect();
       if (rect.bottom > maxBottom) {

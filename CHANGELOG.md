@@ -4,6 +4,24 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/) y este proyecto se adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [0.0.2] - 2026-11-16
+
+### Añadido
+* Soporte nativo para ES Modules (`"type": "module"`, `exports` en `package.json`) y generación de doble bundle en Webpack: `dist/js/pirubbeditor.mjs` (ESM) y `dist/js/pirubbeditor.js` (UMD).
+* Módulo de sanitización (`src/js/utils/sanitize.js`) para validar URLs, dimensiones CSS, colores, tamaños de fuente e IDs de YouTube.
+* Método `destroy()` en `PiruBbEditor` con `AbortController` para limpiar listeners globales y temporizadores sin fugas de memoria.
+* Suite de pruebas unitarias (`test/unit.test.js`) con `node:test` y script `npm test`.
+
+### Cambiado
+* Modernización del código fuente y configuración de Webpack a ES2022+ (`target: ["web", "es2022"]`, campos privados `#`, `AbortController`, `globalThis`, `at(-1)`, `for...of`, `replaceAll`).
+* Optimización del sistema de historial con *debounce* de 300 ms en eventos de entrada, límite de 100 estados y soporte para `Ctrl+Shift+Z`.
+* Unificación del manejo de `Enter` para bloques `blockquote`, `.spoiler` y `.vip-box` en `editorEvents.js`.
+* Actualización de `test/index.html` para importar el editor mediante `<script type="module">`.
+
+### Seguridad
+* Prevención de XSS en `convertToHTML.js` y `test/preview.php` escapando HTML de entrada, protegiendo el contenido literal dentro de `[code]` y bloqueando protocolos peligrosos (`javascript:`, `data:`, `vbscript:`).
+* Construcción segura del DOM en modales y botones (`modal.js`, `url.js`, `image.js`, `youtube.js`).
+
 ## [0.0.1] - 2026-09-25
 
 ### Añadido

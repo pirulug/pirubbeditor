@@ -14,11 +14,11 @@ export function escapeHTML(str) {
 export function decodeBasicEntities(str) {
   if (typeof str !== "string") return "";
   return str
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">");
+    .replaceAll("&amp;", "&")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#39;", "'")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">");
 }
 
 export function sanitizeUrl(rawUrl) {

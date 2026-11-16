@@ -1,16 +1,34 @@
 {
   "name": "pirubbeditor",
   "version": "0.0.1",
-  "main": "webpack.config.js",
+  "description": "Modern, lightweight WYSIWYG BBCode rich text editor in vanilla ES2022+ JavaScript and Sass.",
+  "type": "module",
+  "main": "./dist/js/pirubbeditor.js",
+  "module": "./dist/js/pirubbeditor.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/js/pirubbeditor.mjs",
+      "require": "./dist/js/pirubbeditor.js",
+      "default": "./dist/js/pirubbeditor.mjs"
+    },
+    "./css": "./dist/css/pirubbeditor.css"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "webpack --config webpack.config.js --progress",
-    "dev": "webpack --config webpack.config.js --progress",
+    "dev": "webpack --config webpack.config.js --mode development --progress",
     "start": "webpack serve --config webpack.config.js --progress",
-    "watch": "webpack --config webpack.config.js --watch --progress"
+    "watch": "webpack --config webpack.config.js --watch --progress",
+    "test": "node --test test/unit.test.js"
   },
-  "author": "",
+  "author": "Pirulug",
   "license": "MIT",
-  "description": "",
   "devDependencies": {
     "css-loader": "^7.1.5",
     "mini-css-extract-plugin": "^2.10.2",
